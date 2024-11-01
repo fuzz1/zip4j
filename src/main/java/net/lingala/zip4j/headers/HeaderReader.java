@@ -18,20 +18,7 @@ package net.lingala.zip4j.headers;
 
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.io.inputstream.NumberedSplitRandomAccessFile;
-import net.lingala.zip4j.model.AESExtraDataRecord;
-import net.lingala.zip4j.model.AbstractFileHeader;
-import net.lingala.zip4j.model.CentralDirectory;
-import net.lingala.zip4j.model.DataDescriptor;
-import net.lingala.zip4j.model.DigitalSignature;
-import net.lingala.zip4j.model.EndOfCentralDirectoryRecord;
-import net.lingala.zip4j.model.ExtraDataRecord;
-import net.lingala.zip4j.model.FileHeader;
-import net.lingala.zip4j.model.LocalFileHeader;
-import net.lingala.zip4j.model.Zip4jConfig;
-import net.lingala.zip4j.model.Zip64EndOfCentralDirectoryLocator;
-import net.lingala.zip4j.model.Zip64EndOfCentralDirectoryRecord;
-import net.lingala.zip4j.model.Zip64ExtendedInfo;
-import net.lingala.zip4j.model.ZipModel;
+import net.lingala.zip4j.model.*;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.AesVersion;
 import net.lingala.zip4j.model.enums.CompressionMethod;
@@ -46,13 +33,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static net.lingala.zip4j.headers.HeaderUtil.decodeStringWithCharset;
+import static net.lingala.zip4j.headers.HeaderUtil.decodeString;
 import static net.lingala.zip4j.util.BitUtils.isBitSet;
-import static net.lingala.zip4j.util.InternalZipConstants.ENDHDR;
-import static net.lingala.zip4j.util.InternalZipConstants.MAX_COMMENT_SIZE;
-import static net.lingala.zip4j.util.InternalZipConstants.ZIP4J_DEFAULT_CHARSET;
-import static net.lingala.zip4j.util.InternalZipConstants.ZIP_64_NUMBER_OF_ENTRIES_LIMIT;
-import static net.lingala.zip4j.util.InternalZipConstants.ZIP_64_SIZE_LIMIT;
+import static net.lingala.zip4j.util.InternalZipConstants.*;
 import static net.lingala.zip4j.util.Zip4jUtil.readFully;
 
 /**
@@ -195,7 +178,7 @@ public class HeaderReader {
       if (fileNameLength > 0) {
         byte[] fileNameBuff = new byte[fileNameLength];
         zip4jRaf.readFully(fileNameBuff);
-        String fileName = decodeStringWithCharset(fileNameBuff, fileHeader.isFileNameUTF8Encoded(), charset);
+        String fileName = decodeString(fileNameBuff);
         fileHeader.setFileName(fileName);
       } else {
         throw new ZipException("Invalid entry name in file header");
@@ -209,7 +192,7 @@ public class HeaderReader {
       if (fileCommentLength > 0) {
         byte[] fileCommentBuff = new byte[fileCommentLength];
         zip4jRaf.readFully(fileCommentBuff);
-        fileHeader.setFileComment(decodeStringWithCharset(fileCommentBuff, fileHeader.isFileNameUTF8Encoded(), charset));
+        fileHeader.setFileComment(decodeString(fileCommentBuff));
       }
 
       if (fileHeader.isEncrypted()) {
@@ -559,7 +542,7 @@ public class HeaderReader {
       byte[] fileNameBuf = new byte[fileNameLength];
       readFully(inputStream, fileNameBuf);
 
-      String fileName = decodeStringWithCharset(fileNameBuf, localFileHeader.isFileNameUTF8Encoded(), charset);
+      String fileName = decodeString(fileNameBuf);
       localFileHeader.setFileName(fileName);
       localFileHeader.setDirectory(fileName.endsWith("/") || fileName.endsWith("\\"));
     } else {
@@ -723,7 +706,7 @@ public class HeaderReader {
     try {
       byte[] commentBuf = new byte[commentLength];
       raf.readFully(commentBuf);
-      return decodeStringWithCharset(commentBuf, false, charset != null ? charset : ZIP4J_DEFAULT_CHARSET);
+      return decodeString(commentBuf);
     } catch (IOException e) {
       // Ignore any exception and set comment to null if comment cannot be read
       return null;
